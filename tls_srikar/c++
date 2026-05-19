@@ -1,0 +1,290 @@
+#include <vector>
+#include <cmath>
+#include <string>
+#include <exception>
+#include <iostream>
+using namespace std;
+
+class Bank
+{
+protected:
+    int bankId;
+
+public:
+    string bankName;
+    vector<Branch *> branches;
+    vector<Customer *> customers;
+    vector<Employee *> employees;
+};
+
+class Branch
+{
+protected:
+    int branchId;
+    string IFSCCode;
+
+public:
+    string branchName;
+    string address;
+    vector<Account *> accounts;
+    vector<Employee *> employees;
+};
+
+class Customer
+{
+protected:
+    int customerId;
+    string aadhaarNumber;
+    string PANNumber;
+
+public:
+    string fullName;
+    string dob;
+    string gender;
+    string mobileNumber;
+    string email;
+    string address;
+    vector<Account *> accounts;
+    vector<Loan *> loans;
+};
+
+class Account
+{
+protected:
+    long accountNumber;
+    string accountType;
+    double balance;
+    string dateOpened;
+
+public:
+    string status;
+    Branch *branch;
+    Customer *customer;
+
+    vector<Transaction *> transactions;
+
+    virtual void deposit(double amount) = 0;
+    virtual void withdraw(double amount) = 0;
+};
+class SavingsAccount : public Account
+{
+public:
+    double interestRate;
+    double minimumBalance;
+
+    void deposit(double amount) override
+    {
+        balance = balance + amount;
+    }
+
+    void withdraw(double amount) override
+    {
+        if (status == "blocked")
+        {
+            throw AccountBlockedException();
+        }
+        if (balance < amount)
+        {
+            throw InsufficientBalanceException();
+        }
+        if (balance - amount < minimumBalance)
+        {
+            throw InsufficientBalanceException();
+        }
+        balance -= amount;
+    }
+};
+
+class CurrentAccount : public Account
+{
+public:
+    double overdraftLimit;
+    string businessName;
+
+    void deposit(double amount) override
+    {
+        balance = balance + amount;
+    }
+    void withdraw(double amount) override
+    {
+        if (status == "blocked")
+        {
+            throw AccountBlockedException();
+        }
+        if (balance + overdraftLimit < amount)
+        {
+            throw InsufficientBalanceException();
+        }
+        balance -= amount;
+    }
+};
+
+class FixedDepositAccount : public Account
+{
+public:
+    double FDAmount;
+    string maturityDate;
+    double FDInterestRate;
+    int tenureMonths;
+
+public:
+    void deposit(double amount) override
+    {
+        FDAmount = amount;
+        balance = FDAmount + (FDAmount * FDInterestRate / 100 * tenureMonths / 12);
+    }
+    void withdraw(double amount) override
+    {
+        throw InsufficientBalanceException();
+    }
+};
+
+class Transaction
+{
+protected:
+    int transactionId;
+
+public:
+    string transactionType;
+    double amount;
+    string transactionDate;
+    Account *senderAccount;
+    Account *receiverAccount;
+    string status;
+};
+
+class Loan
+{
+protected:
+    int loanId;
+    string loanType;
+    double loanAmount;
+
+public:
+    double interestRate;
+    int tenureYears;
+    double EMIAmount;
+    string loanStatus;
+    Customer *customer;
+    void emi()
+    {
+        int n = 12 * tenureYears;
+        double p = loanAmount;
+        double r = (interestRate / 12) / 100;
+        EMIAmount = (p * r * pow(1 + r, n)) / (pow(1 + r, n) - 1);
+    }
+};
+
+class ATMCard
+{
+protected:
+    long cardNumber;
+    int CVV;
+    string expiryDate;
+    int PIN;
+    string cardType;
+    string cardStatus;
+    Account *linkedAccount;
+};
+
+class Employee
+{
+protected:
+    int employeeId;
+    double salary;
+
+public:
+    string employeeName;
+    string designation;
+    Branch *branch;
+};
+
+class Notification
+{
+public:
+    string message;
+    virtual void send() = 0;
+};
+
+class SMSNotification : public Notification
+{
+public:
+    string phoneNumber;
+    string deliveryStatus;
+
+    void send() override
+    {
+        cout << "SMS sent to :" << phoneNumber << "\n"
+             << message << endl;
+        deliveryStatus = "sent";
+    }
+};
+
+class EmailNotification : public Notification
+{
+public:
+    string emailAddress;
+    string subject;
+    string deliveryStatus;
+
+    void send() override
+    {
+        cout << "Email sent to :" << emailAddress << "\nSubject:" << subject << "\n"
+             << message << endl;
+        deliveryStatus = "sent";
+    }
+};
+class InsufficientBalanceException : public exception
+{
+public:
+    const char *what() const noexcept override
+    {
+        return "Insufficient balance!";
+    }
+};
+
+class InvalidPINException : public exception
+{
+public:
+    const char *what() const noexcept override
+    {
+        return "Invalid PIN entered!";
+    }
+};
+
+class AccountBlockedException : public exception
+{
+public:
+    const char *what() const noexcept override
+    {
+        return "Account is blocked!";
+    }
+};
+
+class LoanRejectedException : public exception
+{
+public:
+    const char *what() const noexcept override
+    {
+        return "Loan has been rejected!";
+    }
+};
+class factory
+{
+public:
+    static Account *createaccount(string typ)
+    {
+        if (typ == "savings")
+        {
+            return new SavingsAccount();
+        }
+        else if (typ == "current")
+        {
+            return new CurrentAccount();
+        }
+        else if (typ == "fd")
+        {
+            return new FixedDepositAccount();
+        }
+    }
+};
