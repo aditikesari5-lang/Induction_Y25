@@ -6,7 +6,7 @@ COPY Makefile ./
 COPY include ./include
 COPY src ./src
 
-RUN make clean && make
+RUN make clean && make LDFLAGS="-static-libstdc++ -static-libgcc"
 
 FROM debian:bookworm-slim AS runtime
 
