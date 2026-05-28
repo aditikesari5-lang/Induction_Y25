@@ -11,7 +11,7 @@
 class Branch;
 class Customer;
 
-// ─── Abstract Base: Account ───────────────────────────────────────────────────
+// ─── Base class Account ───────────────────────────────────────────────────
 class Account {
 private:
     static long numCounter;
@@ -41,13 +41,13 @@ public:
         for (auto t : transactions) delete t;
     }
 
-    // ── Guards ─────────────────────────────────────────────────────────────
+    // -- Exception ----------------------------------
     void checkActive() const {
         if (status == "Blocked")
             throw AccountBlockedException("Account " + std::to_string(accountNumber) + " is blocked.");
     }
 
-    // ── Core operations (may be overridden) ────────────────────────────────
+    // -- Core operations ---------------------------
     virtual void deposit(double amount) {
         checkActive();
         if (amount <= 0) throw std::invalid_argument("Deposit amount must be positive.");
@@ -56,7 +56,7 @@ public:
         transactions.push_back(t);
         std::cout << std::fixed << std::setprecision(2)
                   << "  Deposited Rs." << amount
-                  << " → Balance: Rs." << balance << "\n";
+                  << "  Balance: Rs." << balance << "\n";
     }
 
     virtual void withdraw(double amount) {
@@ -68,7 +68,7 @@ public:
         transactions.push_back(t);
         std::cout << std::fixed << std::setprecision(2)
                   << "  Withdrew Rs." << amount
-                  << " → Balance: Rs." << balance << "\n";
+                  << "  Balance: Rs." << balance << "\n";
     }
 
     void transfer(Account* target, double amount) {
@@ -91,7 +91,7 @@ public:
     }
 
     void printStatement() const {
-        std::cout << "  ── Statement for Account #" << accountNumber << " ──\n";
+        std::cout << "  -- Statement for Account #" << accountNumber << " --\n";
         if (transactions.empty()) {
             std::cout << "  No transactions yet.\n";
         } else {
@@ -106,7 +106,7 @@ public:
 long Account::numCounter = 0;
 
 
-// ─── SavingsAccount ───────────────────────────────────────────────────────────
+// -- SavingsAccount ---------------------------------------------
 class SavingsAccount : public Account {
 public:
     double interestRate;      
@@ -139,8 +139,7 @@ public:
         double interest = balance * (interestRate / 100.0) / 12.0;
         balance += interest;
         std::cout << std::fixed << std::setprecision(2)
-                  << "  [Savings] Monthly interest Rs." << interest
-                  << " applied. New balance: Rs." << balance << "\n";
+                  << "  [Savings] Monthly interest Rs." << interest << " applied. New balance: Rs." << balance << "\n";
     }
 
     void displayInfo() const override {
@@ -153,7 +152,7 @@ public:
 };
 
 
-// ─── CurrentAccount ───────────────────────────────────────────────────────────
+// -- CurrentAccount ----------------------------------------
 class CurrentAccount : public Account {
 public:
     double overdraftLimit;
@@ -200,7 +199,7 @@ public:
 };
 
 
-// ─── FixedDepositAccount ──────────────────────────────────────────────────────
+// -- FixedDepositAccount -----------------------------------------------
 class FixedDepositAccount : public Account {
 public:
     double FDAmount;
@@ -219,7 +218,7 @@ public:
         maturityDate = std::time(nullptr) + (long long)tenure * 30 * 24 * 3600;
     }
 
-    // FD cannot be withdrawn mid-tenure (simplified rule)
+    // FD cannot be withdrawn mid-tenure
     void withdraw(double /*amount*/) override {
         throw std::runtime_error("Premature withdrawal not allowed for Fixed Deposit.");
     }
@@ -248,7 +247,7 @@ public:
 };
 
 
-// ─── Account Factory ──────────────────────────────────────────────────────────
+// -- Account Factory ---------------------------------------------
 class AccountFactory {
 public:
     static Account* createAccount(const std::string& type,
