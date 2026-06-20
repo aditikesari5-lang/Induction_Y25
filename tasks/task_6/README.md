@@ -78,6 +78,7 @@ Using the translation vectors (`tvecs`) and error values from OpenCV:
 ### What to Submit
 1. Your complete `swarm_tracker` ROS 2 package containing all scripts and launch files.
 2. A **2-minute screen recording** demonstrating your successful track. The video must show both the 3D Gazebo simulation of your completed subtasks and an inset window of the live OpenCV camera feed with annotations.
+3. **Screenshots:** Include at least two screenshots in your PR description. One showing the live **QGroundControl (QGC)** interface tracking the drones, and another showing your ROS 2 terminal output or MAVROS telemetry.
 
 > [!CAUTION]
 > **Do NOT commit your build files!** 
